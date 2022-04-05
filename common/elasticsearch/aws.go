@@ -14,6 +14,7 @@
 package elasticsearch
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,9 +26,10 @@ import (
 
 // AWSSigningTransport used to sign outgoing requests to AWS ES
 type AWSSigningTransport struct {
-	HTTPClient  *http.Client
-	Credentials awsauth.Credentials
-	Session     *session.Session
+	HTTPClient      *http.Client
+	Credentials     awsauth.Credentials
+	Session         *session.Session
+	TLSClientConfig *tls.Config
 }
 
 // RoundTrip implementation
@@ -39,7 +41,8 @@ func (a AWSSigningTransport) RoundTrip(req *http.Request) (*http.Response, error
 }
 
 func createAWSClient() (*http.Client, error) {
-	signingTransport := AWSSigningTransport{HTTPClient: http.DefaultClient}
+	//signingTransport := AWSSigningTransport{HTTPClient: http.DefaultClient}
+	signingTransport := AWSSigningTransport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 	signingTransport.newSession()
 
 	return &http.Client{Transport: http.RoundTripper(signingTransport)}, nil
